@@ -5,16 +5,19 @@ pipeline {
     stage('Run random-csv job') {
       steps {
         script {
+          // Trigger the upstream job that generates the CSV artifact.
           String randomCsvJob = 'random-csv'
           def randomBuild = build job: randomCsvJob, wait: true
+          // Pull the CSV from the specific build we just ran.
           copyArtifacts(
             projectName: randomCsvJob,
             selector: specific("${randomBuild.number}"),
             filter: 'random_numbers.csv'
           )
 
+          // Use the first data row (2nd line) as the input number.
           String n = sh(
-            script: "awk 'NR==2{print $1}' random_numbers.csv",
+            script: "awk 'NR==2{print \\$1}' random_numbers.csv",
             returnStdout: true
           ).trim()
           if (!n) {
@@ -28,6 +31,7 @@ pipeline {
     stage('Run multiply-param job') {
       steps {
         script {
+          // Trigger the downstream job with the extracted parameter.
           String multiplyJob = 'multiply-param'
           build job: multiplyJob, wait: true, parameters: [
             string(name: 'INPUT_NUMBER', value: env.INPUT_NUMBER)

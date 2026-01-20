@@ -1,0 +1,30 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(name: 'INPUT_NUMBER', defaultValue: '1', description: '1-100 の数字を指定')
+  }
+
+  stages {
+    stage('Validate') {
+      steps {
+        script {
+          int n = params.INPUT_NUMBER as int
+          if (n < 1 || n > 100) {
+            error("INPUT_NUMBER must be between 1 and 100. Got: ${n}")
+          }
+        }
+      }
+    }
+
+    stage('Multiply x10') {
+      steps {
+        script {
+          int n = params.INPUT_NUMBER as int
+          int result = n * 10
+          echo "${n} x 10 = ${result}"
+        }
+      }
+    }
+  }
+}

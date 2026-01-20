@@ -1,0 +1,31 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Generate Random Number') {
+      steps {
+        script {
+          String n = sh(script: 'shuf -i 1-100 -n 1', returnStdout: true).trim()
+          writeFile file: 'random_number.csv', text: "number\n${n}\n"
+          env.RANDOM_NUMBER = n
+        }
+      }
+    }
+
+    stage('Multiply x10') {
+      steps {
+        script {
+          int n = env.RANDOM_NUMBER as int
+          int result = n * 10
+          echo "${n} x 10 = ${result}"
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: 'random_number.csv', onlyIfSuccessful: false
+    }
+  }
+}

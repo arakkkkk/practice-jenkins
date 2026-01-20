@@ -1,0 +1,16 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Generate Random CSV') {
+      steps {
+        sh '''
+          set -e
+          printf "number\n" > random_numbers.csv
+          seq 1 100 | shuf | awk '{print $0}' >> random_numbers.csv
+        '''
+        archiveArtifacts artifacts: 'random_numbers.csv', onlyIfSuccessful: true
+      }
+    }
+  }
+}

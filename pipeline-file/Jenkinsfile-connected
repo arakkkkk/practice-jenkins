@@ -2,22 +2,36 @@ pipeline {
   agent any
 
   stages {
-    stage('Generate Random Number') {
+    stage('Run random-csv job') {
       steps {
         script {
-          String n = sh(script: 'shuf -i 1-100 -n 1', returnStdout: true).trim()
-          writeFile file: 'random_number.csv', text: "number\n${n}\n"
-          env.RANDOM_NUMBER = n
+          String randomCsvJob = 'random-csv'
+          def randomBuild = build job: randomCsvJob, wait: true
+          copyArtifacts(
+            projectName: randomCsvJob,
+            selector: specific("${randomBuild.number}"),
+            filter: 'random_numbers.csv'
+          )
+
+          String n = sh(
+            script: "awk 'NR==2{print $1}' random_numbers.csv",
+            returnStdout: true
+          ).trim()
+          if (!n) {
+            error('random_numbers.csv に数値がありません')
+          }
+          env.INPUT_NUMBER = n
         }
       }
     }
 
-    stage('Multiply x10') {
+    stage('Run multiply-param job') {
       steps {
         script {
-          int n = env.RANDOM_NUMBER as int
-          int result = n * 10
-          echo "${n} x 10 = ${result}"
+          String multiplyJob = 'multiply-param'
+          build job: multiplyJob, wait: true, parameters: [
+            string(name: 'INPUT_NUMBER', value: env.INPUT_NUMBER)
+          ]
         }
       }
     }
@@ -25,7 +39,7 @@ pipeline {
 
   post {
     always {
-      archiveArtifacts artifacts: 'random_number.csv', onlyIfSuccessful: false
+      archiveArtifacts artifacts: 'random_numbers.csv', onlyIfSuccessful: false
     }
   }
 }

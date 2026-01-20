@@ -56,6 +56,7 @@ pipeline {
           // number列にて、行ごとにループしてmultiply-paramジョブを呼び出す
           def csvContent = readFile('random_numbers.csv').trim().split('\n')
           for (int i = 1; i < csvContent.length; i++) {
+            echo "Processing line ${i + 1}: ${csvContent[i]}"
             def number = csvContent[i].trim()
             if (number) {
               echo "Triggering multiply-param job with number=${number}"

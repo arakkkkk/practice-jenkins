@@ -23,7 +23,7 @@ pipeline {
     }
     stage('csv validation') {
       environment {
-        EXPECTED_HEADERS = 'number'
+        EXPECTED_HEADERS = 'id,number'
         OUTPUT_FILE_NAME = 'random_numbers.csv'
       }
       steps {
@@ -54,13 +54,20 @@ pipeline {
           ''')
 
           // number列にて、行ごとにループしてmultiply-paramジョブを呼び出す
-          def csvContent = readFile('random_numbers.csv').trim().split('\n')
-          for (int i = 1; i < csvContent.length; i++) {
-            echo "Processing line ${i + 1}: ${csvContent[i]}"
-            def number = csvContent[i].trim()
+          def csvRaws = readFile('random_numbers.csv').trim().split('\n')
+          for (int i = 1; i < csvRaws.length; i++) {
+            echo "Processing line ${i + 1}: ${csvRaws[i]}"
+            def number = csvRaws[i].split(",")[1].trim()
             if (number) {
               echo "Triggering multiply-param job with number=${number}"
-              build job: 'multiply-param', parameters: [string(name: 'number', value: number)], wait: true
+              def downstream = build job: 'multiply-param',
+                parameters: [string(name: 'number', value: number)],
+                wait: true,
+                propagate: false
+              echo "multiply-param result: ${downstream.result}"
+              if (downstream.result != 'SUCCESS') {
+                error("multiply-param failed for number=${number} (result=${downstream.result})")
+              }
             }
           }
         }

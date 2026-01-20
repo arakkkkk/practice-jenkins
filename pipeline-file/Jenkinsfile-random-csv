@@ -6,8 +6,8 @@ pipeline {
       steps {
         sh '''
           set -e
-          printf "number\n" > random_numbers.csv
-          printf "10\n14" >> random_numbers.csv
+          printf "id,number\n" > random_numbers.csv
+          printf "1,10\n2,14" >> random_numbers.csv
         '''
         archiveArtifacts artifacts: 'random_numbers.csv', onlyIfSuccessful: true
       }

@@ -3,30 +3,43 @@ pipeline {
 
   stages {
     stage('Run random-csv job') {
+      environment {
+        JOB_NAME = 'ramdom-csv'
+        OUTPUT_FILE_NAME = 'random_numbers.csv'
+      }
       steps {
         script {
           // Trigger the upstream job that generates the CSV artifact.
-          String randomCsvJob = 'random-csv'
-          def randomBuild = build job: randomCsvJob, wait: true
+          def job = build job: env.JOB_NAME, wait: true
 
           // Pull the CSV from the specific build we just ran.
           copyArtifacts(
-            projectName: randomCsvJob,
-            selector: specific("${randomBuild.number}"),
-            filter: 'random_numbers.csv'
+            projectName: env.JOB_NAME,
+            selector: specific("${job.number}"),
+            filter: env.OUTPUT_FILE_NAME
           )
+        }
+      }
+    }
+    stage('csv validation') {
+      environment {
+        EXPECTED_HEADER = 'number'
+      }
+      steps {
+        script {
+          def status = sh(
+            script: 'head -n 1 file.csv | grep -qx "$EXPECTED_HEADER"',
+            returnStatus: true
+          )
+          if (status != 0) {
+            error("CSV headerが不正です。期待値: ${env.EXPECTED_HEADER}")
+          }
 
-          // Display the contents of the CSV for verification.
-          sh('''
-            echo "Downloaded random_numbers.csv:"
-            cat random_numbers.csv
-          ''')
-
-          // Use the first data row (2nd line) as the input number.
-          env.INPUT_NUMBER = sh(
-            script: 'awk "NR==2{print $1}" random_numbers.csv',
-            returnStdout: true
-          ).trim()
+          // Read the CSV file and extract the first number after the header.
+          def csvContent = readFile('random_numbers.csv').trim().split('\n')
+          if (csvContent.length < 1) {
+            error "CSV file does not contain enough data."
+          }
         }
       }
     }

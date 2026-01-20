@@ -57,7 +57,7 @@ pipeline {
           def csvRaws = readFile('random_numbers.csv').trim().split('\n')
           for (int i = 1; i < csvRaws.length; i++) {
             echo "Processing line ${i + 1}: ${csvRaws[i]}"
-            def number = csvRaws[i].split(",")[1].trim()
+            def number = csvRaws[i].split(",")[0].trim()
             if (number) {
               echo "Triggering multiply-param job with number=${number}"
               def downstream = build job: 'multiply-param',

@@ -23,16 +23,17 @@ pipeline {
     }
     stage('csv validation') {
       environment {
-        EXPECTED_HEADER = 'number'
+        EXPECTED_HEADERS = 'number'
+        OUTPUT_FILE_NAME = 'random_numbers.csv'
       }
       steps {
         script {
           def status = sh(
-            script: 'head -n 1 file.csv | grep -qx "$EXPECTED_HEADER"',
+            script: 'head -n 1 "$OUTPUT_FILE_NAME" | grep -qx "$EXPECTED_HEADERS"',
             returnStatus: true
           )
           if (status != 0) {
-            error("CSV headerが不正です。期待値: ${env.EXPECTED_HEADER}")
+            error("CSV headerが不正です。期待値: ${env.EXPECTED_HEADERS}")
           }
 
           // Read the CSV file and extract the first number after the header.

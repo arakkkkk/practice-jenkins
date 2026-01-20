@@ -17,7 +17,7 @@ pipeline {
 
           // Use the first data row (2nd line) as the input number.
           String n = sh(
-            script: "awk 'NR==2{print \\$1}' random_numbers.csv",
+            script: 'awk "NR==2{print $1}" random_numbers.csv',
             returnStdout: true
           ).trim()
           if (!n) {

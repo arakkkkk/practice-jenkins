@@ -2,6 +2,7 @@
 import json
 import logging
 import sys
+from pathlib import Path
 
 
 def setup_logger() -> logging.Logger:
@@ -15,6 +16,7 @@ def setup_logger() -> logging.Logger:
 
 
 def main() -> None:
+    output_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("payload.json")
     logger = setup_logger()
     logger.info("payload generation started")
 
@@ -24,8 +26,12 @@ def main() -> None:
         {"title": "third", "name": "charlie", "value": "30"},
     ]
     logger.info("payload generated: items=%d", len(payload))
-    # Upstream 側で returnStdout として受け取る値なので、JSONのみを stdout に出力する。
-    print(json.dumps(payload, ensure_ascii=False))
+    payload_text = json.dumps(payload, ensure_ascii=False)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(payload_text, encoding="utf-8")
+    logger.info("payload file written: path=%s", output_path)
+    # 既存互換のため、stdout にも JSON を出力する。
+    print(payload_text)
     logger.info("payload output completed")
 
 

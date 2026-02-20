@@ -1,9 +1,10 @@
 FROM jenkins/jenkins:lts-jdk17
 
 USER root
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git ca-certificates docker.io \
-    && rm -rf /var/lib/apt/lists/*
+COPY scripts/install-docker-in-image.sh /usr/local/bin/install-docker-in-image.sh
+RUN chmod +x /usr/local/bin/install-docker-in-image.sh \
+    && /usr/local/bin/install-docker-in-image.sh \
+    && rm -f /usr/local/bin/install-docker-in-image.sh
 
 USER jenkins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt

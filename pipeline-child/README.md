@@ -9,7 +9,7 @@
 - リスト件数ぶん Downstream を繰り返し実行する
 
 ## 2. 構成ファイル
-- `Jenknis-upstream`  
+- `Jenkins-upstream`  
   Upstream の Jenkins Pipeline 定義
 - `Jenkins-downstream`  
   Downstream の Jenkins Pipeline 定義
@@ -24,10 +24,12 @@ sequenceDiagram
     autonumber
     participant U as Upstream Job
     participant P as script/payload.py
+    participant F as payload.json
     participant D as Downstream Job
 
-    U->>P: python3 script/payload.py
-    P-->>U: JSON list[{title,name,value}, ...]
+    U->>P: python3 pipeline-child/script/payload.py payload.json
+    P->>F: JSON listを書き込み
+    U->>F: readJSON(file: payload.json)
     loop payload の要素ごと
         U->>D: build(title, name, value)
         D-->>U: success / failure
@@ -37,6 +39,7 @@ sequenceDiagram
 ## 4. 前提条件
 - Jenkins で Pipeline ジョブを作成できること
 - Jenkins Agent で Docker が実行可能であること（`agent { docker { image ... } }` を利用）
+- Jenkins に `Pipeline Utility Steps` プラグインが入っていること（`readJSON` を利用）
 - 本リポジトリを Jenkins からチェックアウトできること
 
 ## 5. 実装方法（Jenkins設定）
@@ -55,18 +58,18 @@ Downstream は以下3パラメータを受け取ります。
 ### 5.2 Upstream ジョブ作成
 1. Jenkins で Pipeline ジョブを新規作成  
    例: `pipeline-child-upstream`
-2. Pipeline Script に `Jenknis-upstream` の内容を設定
+2. Pipeline Script に `Jenkins-upstream` の内容を設定
 3. `build(job: 'pipeline-child-downstream', ...)` のジョブ名が、実際の Downstream ジョブ名と一致していることを確認
 4. 保存
 
 Upstream は以下を実施します。
-- `python3 script/payload.py` を実行
-- JSON をパースして配列であることを検証
+- `python3 pipeline-child/script/payload.py payload.json` を実行
+- `readJSON` で `payload.json` を読み込み、JSON を検証
 - 要素ごとに `build(...)` で Downstream を起動
 
 ログ出力に関する注意:
-- `payload.py` の `stdout` は Upstream が JSON を受け取るためのチャネルです
-- そのためログは `stderr` に出力し、`stdout` を JSON のみに保つ実装にしています
+- Upstream は `payload.json` を読み込むため、`stdout` を直接パースしません
+- ただしトラブルシュートしやすいように、`payload.py` のログは `stderr` に出力しています
 
 ## 6. 使い方
 1. `pipeline-child-upstream` を実行
@@ -84,8 +87,10 @@ Upstream は以下を実施します。
   - `received title=third, name=charlie, value=30`
 
 ## 8. トラブルシュート
-- `payload.py returned empty output`  
-  `payload.py` が空文字を返している
+- `payload file not found: payload.json`  
+  `payload.py` がファイル出力できていない
+- `payload file is empty: payload.json`  
+  生成ファイルが空
 - `payload.py output must be a JSON list`  
   JSONのトップレベルが配列ではない
 - `payload index X is missing key: ...`  
@@ -95,12 +100,11 @@ Upstream は以下を実施します。
 
 ## 9. カスタマイズポイント
 - Downstream ジョブ名を変更する場合  
-  `Jenknis-upstream` の `build(job: '...')` を更新
+  `Jenkins-upstream` の `build(job: '...')` を更新
 - 渡すデータを増やす場合  
   1. `script/payload.py` にキーを追加  
   2. `Jenkins-downstream` の `parameters` を追加  
-  3. `Jenknis-upstream` の `build(parameters: ...)` を追加
+  3. `Jenkins-upstream` の `build(parameters: ...)` を追加
 
 ## 10. 補足
-- `Jenknis-upstream` はファイル名が `Jenkins` ではなく `Jenknis` です（現状のリポジトリ定義に合わせています）
 - 本READMEは実装・運用の手順書、仕様の正本は `SPEC.md` です

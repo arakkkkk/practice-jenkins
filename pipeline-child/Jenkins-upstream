@@ -13,14 +13,20 @@ pipeline {
         stage('Generate payload and trigger downstream') {
             steps {
                 script {
-                    String rawPayload = sh(script: 'python3 pipeline-child/script/payload.py', returnStdout: true).trim()
-                    if (!rawPayload) {
-                        error('payload.py returned empty output')
+                    String payloadFile = 'payload.json'
+                    sh "python3 pipeline-child/script/payload.py ${payloadFile}"
+
+                    if (!fileExists(payloadFile)) {
+                        error("payload file not found: ${payloadFile}")
                     }
 
-                    def payloadList = new groovy.json.JsonSlurperClassic().parseText(rawPayload)
-                    if (!(payloadList instanceof List)) {
+                    def payloadList = readJSON file: payloadFile
+                    if (!(payloadList instanceof Collection)) {
                         error('payload.py output must be a JSON list')
+                    }
+                    if (payloadList.isEmpty()) {
+                        echo 'payload list is empty; no downstream builds triggered'
+                        return
                     }
 
                     payloadList.eachWithIndex { item, idx ->

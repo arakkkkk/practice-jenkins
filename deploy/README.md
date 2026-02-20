@@ -7,6 +7,12 @@ Docker で Jenkins を起動するための最小構成です。
 
 - Docker / Docker Compose が使えること
 
+Docker が未インストールなら、先に以下を実行してください（Ubuntu/Debian 系）。
+
+```bash
+bash scripts/install-docker-host.sh
+```
+
 ## クイックスタート
 
 1. 必要なら環境変数ファイルを用意
@@ -44,10 +50,12 @@ http://localhost:8080
 
 ## 構成ファイル
 
-- `docker-compose.yml`: Jenkins コンテナ定義
+- `compose.yml`: Jenkins コンテナ定義
 - `Dockerfile`: Jenkins カスタムイメージ定義
 - `plugins.txt`: 初期インストールする Jenkins プラグイン一覧
 - `Makefile`: よく使う運用コマンド
+- `scripts/install-docker-in-image.sh`: Jenkins イメージ内に Docker CLI を導入するスクリプト
+- `scripts/install-docker-host.sh`: ホスト OS に Docker Engine / Compose を導入するスクリプト
 
 ## 永続化
 

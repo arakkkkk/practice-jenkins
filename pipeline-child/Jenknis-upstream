@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Generate payload and trigger downstream') {
+            steps {
+                script {
+                    String rawPayload = sh(script: 'python3 script/payload.py', returnStdout: true).trim()
+                    if (!rawPayload) {
+                        error('payload.py returned empty output')
+                    }
+
+                    def payloadList = new groovy.json.JsonSlurperClassic().parseText(rawPayload)
+                    if (!(payloadList instanceof List)) {
+                        error('payload.py output must be a JSON list')
+                    }
+
+                    payloadList.eachWithIndex { item, idx ->
+                        if (!(item instanceof Map)) {
+                            error("payload index ${idx} must be an object")
+                        }
+
+                        ['title', 'name', 'value'].each { key ->
+                            if (!item.containsKey(key)) {
+                                error("payload index ${idx} is missing key: ${key}")
+                            }
+                        }
+
+                        build(
+                            job: 'pipeline-child-downstream',
+                            wait: true,
+                            parameters: [
+                                string(name: 'title', value: "${item.title}"),
+                                string(name: 'name', value: "${item.name}"),
+                                string(name: 'value', value: "${item.value}")
+                            ]
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

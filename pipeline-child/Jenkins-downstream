@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'title', defaultValue: '', description: 'title from upstream payload')
+        string(name: 'name', defaultValue: '', description: 'name from upstream payload')
+        string(name: 'value', defaultValue: '', description: 'value from upstream payload')
+    }
+
+    stages {
+        stage('Consume payload') {
+            steps {
+                script {
+                    if (!params.title?.trim()) {
+                        error('title is required')
+                    }
+                    if (!params.name?.trim()) {
+                        error('name is required')
+                    }
+                    if (!params.value?.trim()) {
+                        error('value is required')
+                    }
+
+                    echo "received title=${params.title}, name=${params.name}, value=${params.value}"
+                }
+            }
+        }
+    }
+}

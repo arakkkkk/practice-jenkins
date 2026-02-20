@@ -1,0 +1,26 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Run Upstream') {
+      steps {
+        script {
+          def upstream = build(job: 'Job-Upstream', wait: true, propagate: true)
+          def raw = upstream.description?.trim()
+          if (!raw) {
+            error('upstream から JSON を取得できませんでした。')
+          }
+
+          new groovy.json.JsonSlurperClassic().parseText(raw)
+
+          build(
+            job: 'Job-Downstream',
+            wait: true,
+            propagate: true,
+            parameters: [text(name: 'PAYLOAD_JSON', value: raw)]
+          )
+        }
+      }
+    }
+  }
+}

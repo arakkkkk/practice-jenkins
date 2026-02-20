@@ -1,0 +1,15 @@
+pipeline {
+  agent any
+
+  parameters {
+    text(name: 'PAYLOAD_JSON', defaultValue: '', description: 'upstream から渡される JSON')
+  }
+
+  stages {
+    stage('Echo Payload') {
+      steps {
+        echo params.PAYLOAD_JSON
+      }
+    }
+  }
+}

@@ -36,7 +36,7 @@ sequenceDiagram
 
 ## 4. 前提条件
 - Jenkins で Pipeline ジョブを作成できること
-- Jenkins Agent で `python3` が実行可能であること
+- Jenkins Agent で Docker が実行可能であること（`agent { docker { image ... } }` を利用）
 - 本リポジトリを Jenkins からチェックアウトできること
 
 ## 5. 実装方法（Jenkins設定）

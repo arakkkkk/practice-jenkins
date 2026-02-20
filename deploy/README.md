@@ -56,6 +56,15 @@ Jenkins のデータは `jenkins_home` ボリュームに保存されます。
 
 ## トラブルシュート
 
+- Pipeline で `agent { docker { image '...' } }` が `docker: not found` で失敗する場合
+  - このディレクトリの構成では Jenkins コンテナに Docker CLI を同梱し、`/var/run/docker.sock` をマウントして利用します
+  - 設定変更後は再ビルドが必要です
+
+```bash
+make rebuild
+make up
+```
+
 - `permission denied while trying to connect to the Docker daemon socket` が出る場合
   - 一時対応: `make DOCKER="sudo docker" up`
   - 恒久対応: ユーザーを `docker` グループに追加して再ログイン

@@ -5,6 +5,10 @@ pipeline {
         }
     }
 
+    triggers {
+        cron('0 12 * * *')
+    }
+
     stages {
         stage('Generate payload and trigger downstream') {
             steps {

@@ -13,7 +13,7 @@ pipeline {
         stage('Generate payload and trigger downstream') {
             steps {
                 script {
-                    String rawPayload = sh(script: 'python3 script/payload.py', returnStdout: true).trim()
+                    String rawPayload = sh(script: 'python3 pipeline-child/script/payload.py', returnStdout: true).trim()
                     if (!rawPayload) {
                         error('payload.py returned empty output')
                     }

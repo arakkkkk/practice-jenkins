@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.12-slim'
-        }
-    }
+    agent any
 
     parameters {
         string(name: 'title', defaultValue: '', description: 'title from upstream payload')

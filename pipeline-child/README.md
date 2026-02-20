@@ -64,6 +64,10 @@ Upstream は以下を実施します。
 - JSON をパースして配列であることを検証
 - 要素ごとに `build(...)` で Downstream を起動
 
+ログ出力に関する注意:
+- `payload.py` の `stdout` は Upstream が JSON を受け取るためのチャネルです
+- そのためログは `stderr` に出力し、`stdout` を JSON のみに保つ実装にしています
+
 ## 6. 使い方
 1. `pipeline-child-upstream` を実行
 2. Upstream ログで `payload.py` 実行後に Downstream が順次起動されることを確認
